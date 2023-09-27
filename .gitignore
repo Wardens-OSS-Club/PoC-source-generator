@@ -39,3 +39,7 @@ dist/**/*
 
 # ignore yarn.lock
 yarn.lock
+
+# Ignore test files used in development
+test.ts
+cache

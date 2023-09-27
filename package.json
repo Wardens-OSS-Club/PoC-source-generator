@@ -1,9 +1,10 @@
 {
   "name": "foundry-poc-generator",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
+  "main": "src/foundry/index.ts",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.7.0",
     "typescript": "^5.2.2"
   }
 }
