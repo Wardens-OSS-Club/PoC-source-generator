@@ -11,14 +11,20 @@ import {
     InputMapping
 } from "../interfaces";
 
+/**
+ * @description
+ * Generates the test contract from the sequence object and settings.
+ * @remarks
+ * After initializing the class with the needed params call the {@link Step2Code.createTestFromSequence } function to generate the test contract.
+ * 
+*/
 export default class Step2Code extends GlobalStateManager {    
+
     sequence: DDSequence = [];
     settings: AdditionalSettings = {};
     calls: DDCall[] = [];
     addressToContract: AddressToContractMapping = {};
     addressToAccount: AddressToAccountMapping = {};
-
-    elementSeperator: () => string = (() => "");
 
     constructor(_: DDSequenceWithSettings) {
         const { sequence: _sequence, settings: _settings } = _;
@@ -32,15 +38,14 @@ export default class Step2Code extends GlobalStateManager {
 
         this.calls = _sequence.map((_step) => _step.call);
         this.setContractMappings();
-
-        this.elementSeperator = function () {
-            this.increaseIndentationLevel();
-            return this.STATEMENT_SEPERATOR;
-        }
     }
 
     // Contract-mappings functions:
 
+    /**
+     * @description
+     * Sets the contract mappings for the test contract. Uses the sequence and settings to extract the needed information.
+     */
     setContractMappings() {
         // defining and not directly mutating to keep the code style uniform
         const _addressToContract: AddressToContractMapping = {}
@@ -68,6 +73,13 @@ export default class Step2Code extends GlobalStateManager {
 
     // Fragment-extraction functions:
 
+    /**
+     * @description
+     * Extracts the function fragment from a function string and does basic verification on it.
+     * 
+     * @param functionString The function string to extract the function fragment from
+     * @returns The function fragment
+     */
     extractFunctionFragment(functionString: string): string[] { 
         const fragment: string[] = functionString.split(" ");
         if (fragment.length < 2) throw new Error("Invalid function string.");
@@ -78,11 +90,26 @@ export default class Step2Code extends GlobalStateManager {
         return fragment;
     }
 
-    getFunctionModifiers(functionFragment: string[]): {isPayable: boolean} { 
+    /**
+     * @description
+     * Extracts the modifiers from a function fragment. Currently only supports the payable modifier.
+     * 
+     * @param functionFragment The function fragment to extract the modifiers from
+     * @returns The modifiers of the function
+     */
+    getFunctionModifiers(functionFragment: string[]): { isPayable: boolean } { 
         const isPayable = functionFragment.includes("payable");
         return { isPayable };
     }
 
+    /**
+     * @description
+     * Extracts the output types from a function fragment.
+     * 
+     * @param functionFragment The function fragment to extract the output types from
+     * 
+     * @returns The output types of the function
+     */
     getCallOutputTypes(functionFragment: string[]): GlobalStateVariableType[] { 
         let args: string | string[] = []
 
@@ -105,13 +132,30 @@ export default class Step2Code extends GlobalStateManager {
         return _args as GlobalStateVariableType[];
     }
 
-    // Fragment-generation functions:
+    // DEFINITION FUNCTIONS:
 
+    /**
+     * @description
+     * Defines a contract interface from a {@link S2CContract} contract object.
+     * 
+     * @param index The index of the contract in the sequence
+     * @param _interface The interface of the contract
+     *  
+     * @returns The contract interface
+     */
     @Step2Code.indentation.Indent()
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
         return `interface Contract${index} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("").replace(",", "")}}`;
     }
 
+    /**
+     * @description
+     * Defines a contract variable from an address and an index.
+     * 
+     * @param address The address of the contract
+     * @param index The index of the contract in the sequence
+     * @returns The contract variable
+     */
     @Step2Code.indentation.Indent()
     defineContractVariable(address: string, index: number): string {
         // Setting the contract variable into a constant:
@@ -119,12 +163,34 @@ export default class Step2Code extends GlobalStateManager {
         return `${this.getIndentation()}Contract${index} contract${index} = Contract${index}(${address});`;
     }
 
+    /**
+     * @description
+     * Defines a variable from a name, value and type.
+     * 
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @param type The type of the variable
+     * 
+     * @returns The variable definition
+     */
     @Step2Code.indentation.Indent()
     defineVariable(name: string, value: string, type: GlobalStateVariableType): string { 
         this.setVariable(name, value, type);
         return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${value}`) + ";";
     }
 
+    /**
+     * @description
+     * Defines a call from a {@link DDCall} call object and an input/output mapping.
+     * 
+     * @param call The call object
+     * @param inputMappings The input mappings of the call
+     * @param outputMappings The output mappings of the call
+     * @param useVariable Whether to use the variable name or the contract index
+     * @param nameOrContractIndex The name of the variable or the index of the contract
+     * 
+     * @returns The call definition
+     */
     @Step2Code.indentation.Indent()
     defineCall(call: DDCall, {inputMappings, outputMappings}: {inputMappings: InputMapping[], outputMappings: string[]}, useVariable: boolean = true, nameOrContractIndex: string): string {
         const { contract: currentContract, callInfo, } = call;
@@ -190,10 +256,20 @@ export default class Step2Code extends GlobalStateManager {
         );
     }
 
+    /**
+     * @description
+     * Defines an ether vm.deal to an address. 
+     * 
+     * @param to The address to deal funds to
+     * 
+     * @returns The vm deal definition
+     */
     @Step2Code.indentation.Indent()
     defineVmDeal(to: string): string { 
         return `${this.getIndentation()}vm.deal(${to}, ${this.settings.fundsToCaller});`;
     }
+
+    // MULTI-DEFINITION FUNCTIONS:
 
     defineContractInterfaces(): string[] {
         return Object.keys(this.addressToContract).map((_address) => this.defineContractInterface(this.addressToContract[_address]));
@@ -227,6 +303,19 @@ export default class Step2Code extends GlobalStateManager {
         return Object.keys(this.addressToAccount).map((_address) => this.defineVmDeal(_address));
     }
 
+    // Utils:
+
+    elementSeperator(): string  {
+        this.increaseIndentationLevel();
+        return this.STATEMENT_SEPERATOR;
+    };
+
+    /**
+     * @description
+     * Generates the test contract from the sequence object and settings after they have been processed.
+     * 
+     * @returns The generated test contract
+     */
     createTestFromSequence(): string {  
 
         return (
