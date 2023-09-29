@@ -145,7 +145,7 @@ export default class Step2Code extends GlobalStateManager {
      */
     @Step2Code.indentation.Indent()
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
-        return `interface Contract${index} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("").replace(",", "")}}`;
+        return `interface Contract${index} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("")}}`;
     }
 
     /**
@@ -237,7 +237,7 @@ export default class Step2Code extends GlobalStateManager {
             // output assignment (if applicable) | Probably needs to be re-written for clarity:
              + (!!from && inputMappingFragments.length > 1 ? "\n" + prankFragment : "")
             + (!!inputMappingFragments.length
-                ? `${inputMappingFragments.length === 1
+                ? `${inputMappingFragments.length === 1 && outputMappings.length === 1
                     ? this.getIndentation() + inputMappingFragments[0].substring(8).split(";")[0] // Removing the additional indentation and semicolon
                     : `${this.getIndentation()}(${outputMappings.join(", ")})`} = `
                 : this.getIndentation()
