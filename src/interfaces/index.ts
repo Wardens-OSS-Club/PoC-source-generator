@@ -66,6 +66,7 @@ export interface AdditionalSettings {
 }
 
 export type DDTokenToUser = {
+    account: string;
     address: string;
     amount: string;
 }

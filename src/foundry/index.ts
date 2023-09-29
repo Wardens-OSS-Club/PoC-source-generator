@@ -233,7 +233,7 @@ export default class Step2Code extends GlobalStateManager {
             // space:
             // + this.STATEMENT_SEPERATOR
             // pranking for the next call (case of multiple output variables):
-            + (inputMappingFragments.length > 1 ? `${this.concatenateFragments(inputMappingFragments)} \n` : "")
+            + (inputMappingFragments.length > 0 && outputMappings.length > 1 ? `${this.concatenateFragments(inputMappingFragments)} \n` : "")
             // output assignment (if applicable) | Probably needs to be re-written for clarity:
              + (!!from && inputMappingFragments.length > 1 ? "\n" + prankFragment : "")
             + (!!inputMappingFragments.length
