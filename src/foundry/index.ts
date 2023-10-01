@@ -1,4 +1,3 @@
-import { GlobalStateManager } from "./utils";
 import { GlobalStateVariableType, GlobalStateVariableTypeArray } from "../utils/types";
 import {
     DDSequence,
@@ -9,7 +8,8 @@ import {
     DDSequenceWithSettings,
     S2CContract,
     InputMapping
-} from "../interfaces";
+} from "../interfaces/sequence";
+import Base from "../base";
 
 /**
  * @description
@@ -18,13 +18,15 @@ import {
  * After initializing the class with the needed params call the {@link Step2Code.createTestFromSequence } function to generate the test contract.
  * 
 */
-export default class Step2Code extends GlobalStateManager {    
+export default class Step2Code extends Base {    
 
     sequence: DDSequence = [];
     settings: AdditionalSettings = {};
     calls: DDCall[] = [];
     addressToContract: AddressToContractMapping = {};
     addressToAccount: AddressToAccountMapping = {};
+
+    contractInterfaces: string[] = [];
 
     constructor(_: DDSequenceWithSettings) {
         const { sequence: _sequence, settings: _settings } = _;
@@ -125,7 +127,7 @@ export default class Step2Code extends GlobalStateManager {
 
         for (const arg of args) { 
             if (["uint", "int"].includes(arg)) _args.push((arg + "256") as GlobalStateVariableType);
-            if (!GlobalStateVariableTypeArray.includes(arg)) continue;
+            if (!GlobalStateVariableTypeArray.includes(arg as any)) continue;
             _args.push(arg as GlobalStateVariableType);
         }
 
@@ -145,7 +147,10 @@ export default class Step2Code extends GlobalStateManager {
      */
     @Step2Code.indentation.Indent()
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
-        return `interface Contract${index} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("")}}`;
+        const name: string = `Contract${index}`;
+
+        this.contractInterfaces.push(name)
+        return `interface ${name} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("")}}`;
     }
 
     /**
@@ -174,9 +179,10 @@ export default class Step2Code extends GlobalStateManager {
      * @returns The variable definition
      */
     @Step2Code.indentation.Indent()
-    defineVariable(name: string, value: string, type: GlobalStateVariableType): string { 
+    defineVariable(name: string, value: string, type: GlobalStateVariableType): string {
+        
         this.setVariable(name, value, type);
-        return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${value}`) + ";";
+        return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${type}(${value})`) + ";";
     }
 
     /**

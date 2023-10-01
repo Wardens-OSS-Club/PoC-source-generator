@@ -50,10 +50,6 @@ export interface InputMapping {
 
 export type DDSequence = DDStep[];
 
-export interface GlobalState {
-  [variableName: string]: GlobalStateVariable; // Prob a base type for now | Has to be interpreted at assignment || Is passed back from and to Ethers
-}
-
 export type GlobalStateVariable = {
   value: string;
   type: GlobalStateVariableType;
