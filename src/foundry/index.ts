@@ -44,6 +44,10 @@ export default class Step2Code extends Base {
 
     // Contract-mappings functions:
 
+    isValidType(type: string): type is GlobalStateVariableType {
+        return GlobalStateVariableTypeArray.includes(type) || this.contractInterfaces.includes(type);
+    } 
+
     /**
      * @description
      * Sets the contract mappings for the test contract. Uses the sequence and settings to extract the needed information.
@@ -155,21 +159,6 @@ export default class Step2Code extends Base {
 
     /**
      * @description
-     * Defines a contract variable from an address and an index.
-     * 
-     * @param address The address of the contract
-     * @param index The index of the contract in the sequence
-     * @returns The contract variable
-     */
-    @Step2Code.indentation.Indent()
-    defineContractVariable(address: string, index: number): string {
-        // Setting the contract variable into a constant:
-        this.setVariable(`contract${index}`, `contract${index}`, "contract");
-        return `${this.getIndentation()}Contract${index} contract${index} = Contract${index}(${address});`;
-    }
-
-    /**
-     * @description
      * Defines a variable from a name, value and type.
      * 
      * @param name The name of the variable
@@ -179,8 +168,9 @@ export default class Step2Code extends Base {
      * @returns The variable definition
      */
     @Step2Code.indentation.Indent()
-    defineVariable(name: string, value: string, type: GlobalStateVariableType): string {
-        
+    defineVariable(name: string, value: string, type: string): string {
+        if (!this.isValidType(type)) throw new Error("Invalid type.");
+
         this.setVariable(name, value, type);
         return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${type}(${value})`) + ";";
     }
@@ -281,19 +271,14 @@ export default class Step2Code extends Base {
         return Object.keys(this.addressToContract).map((_address) => this.defineContractInterface(this.addressToContract[_address]));
     }
 
-    defineContractVariables(): string[] { 
-        return Object.keys(this.addressToContract).map((_address) => this.defineContractVariable(_address, this.addressToContract[_address].index));
-    }
-
     defineExecutorAcounts(): string[] { 
         return Object.keys(this.addressToAccount).map((_address) => this.defineVariable(`account${this.addressToAccount[_address]}`, _address, "address"));
     }
 
-    defineVariables(variableNames: string[]): string[] { 
-        return variableNames.map((_variableName) => {
-            const { value, type } = this.state[_variableName];
-            return this.defineVariable(_variableName, value, type);
-        });
+    defineDestinationContractVariables(): string[] { 
+        return Object.keys(this.addressToContract).map((_address, index) => 
+            this.defineVariable(`contract${index + 1}`, _address, this.contractInterfaces[index])
+        )
     }
 
     defineCalls(): string[] { 
@@ -340,9 +325,9 @@ export default class Step2Code extends Base {
             // contract declaration:
             + `contract TestContract is Test {`
             + this.STATEMENT_SEPERATOR
-            // constants:
-            + `${this.concatenateFragments(this.defineContractVariables())}`
-            // space
+            // // constants:
+            + `${this.concatenateFragments(this.defineDestinationContractVariables())}`
+            // // space
             + this.STATEMENT_SEPERATOR
             // executor accounts:
             + `${this.concatenateFragments(this.defineExecutorAcounts())}`

@@ -21,7 +21,7 @@ interface IDynamicContractInterfacesTypeHandler {
 }
 
 export interface IGlobalStateManager {
-  state: IGlobalState;
+  private state: IGlobalState;
   setVariable(name: string, value: string, type: GlobalStateVariableType): void;
   getVariable(name: string): GlobalStateVariable;
 }

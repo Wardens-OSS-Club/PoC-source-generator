@@ -1,6 +1,6 @@
 import { Mixin } from 'ts-mixer';
 
-import { IGlobalStateManager, IIndentationLevelHandler, IIndentationLevelManager } from "../interfaces/base/index";
+import { IGlobalStateManager, IIndentationLevelHandler, IIndentationLevelManager } from "../interfaces/base";
 import { GlobalState, GlobalStateVariable } from "../interfaces/base/index";
 import { GlobalStateVariableType } from "../utils/types";
 
@@ -47,7 +47,7 @@ export class DynamicTypeCreationHandler {
 */
 export class GlobalStateManager implements IGlobalStateManager {
 
-    public state: GlobalState = {};
+    state: GlobalState = {};
 
     /**
      * @description
