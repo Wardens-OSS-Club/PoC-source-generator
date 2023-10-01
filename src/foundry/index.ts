@@ -91,7 +91,7 @@ export default class Step2Code extends Base {
         if (fragment.length < 2) throw new Error("Invalid function string.");
 
         const nameAndArgsIndex: 1 | 0 = (fragment[0] === "function" ? 1 : 0);
-        const nameAndArgs = fragment[nameAndArgsIndex].split("(");
+        const nameAndArgs: string[] = fragment[nameAndArgsIndex].split("(");
         if (nameAndArgs.length < 2) throw new Error("Invalid function string.");
         return fragment;
     }
@@ -153,7 +153,7 @@ export default class Step2Code extends Base {
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
         const name: string = `Contract${index}`;
 
-        this.contractInterfaces.push(name)
+        this.contractInterfaces.push(name);
         return `interface ${name} { \n${_interface.map((_function) => `${this.getIndentation()}${_function}; \n`).join("")}}`;
     }
 
@@ -271,14 +271,14 @@ export default class Step2Code extends Base {
         return Object.keys(this.addressToContract).map((_address) => this.defineContractInterface(this.addressToContract[_address]));
     }
 
-    defineExecutorAcounts(): string[] { 
-        return Object.keys(this.addressToAccount).map((_address) => this.defineVariable(`account${this.addressToAccount[_address]}`, _address, "address"));
-    }
-
-    defineDestinationContractVariables(): string[] { 
-        return Object.keys(this.addressToContract).map((_address, index) => 
-            this.defineVariable(`contract${index + 1}`, _address, this.contractInterfaces[index])
-        )
+    defineAccountsAndContracts(): string[] { 
+        return [
+                ...Object.keys(this.addressToContract).map((_address, index) => 
+                    this.defineVariable(`contract${index + 1}`, _address, this.contractInterfaces[index])),
+                // @audit write it so that accounts do not get defined again if they are already defined and that if an account is a destination contract we simply cast it whenever we interact with it
+                    ...Object.keys(this.addressToAccount).map((_address, index) =>
+                    this.defineVariable(`account${index + 1}`, _address, "address"))                
+        ]
     }
 
     defineCalls(): string[] { 
@@ -325,12 +325,8 @@ export default class Step2Code extends Base {
             // contract declaration:
             + `contract TestContract is Test {`
             + this.STATEMENT_SEPERATOR
-            // // constants:
-            + `${this.concatenateFragments(this.defineDestinationContractVariables())}`
-            // // space
-            + this.STATEMENT_SEPERATOR
-            // executor accounts:
-            + `${this.concatenateFragments(this.defineExecutorAcounts())}`
+            // constants:
+            + `${this.concatenateFragments(this.defineAccountsAndContracts())}`
             // space
             + this.elementSeperator()
                 + `${this.getIndentation()}function setUp() public {`

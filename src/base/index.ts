@@ -150,6 +150,4 @@ export class IndentationLevelHandler implements IIndentationLevelHandler {
     }
 }
 
-export default class Base extends Mixin(GlobalStateManager, IndentationLevelHandler, DynamicTypeCreationHandler) {
-    constructor() { super(); }
-}
+export default class Base extends Mixin(GlobalStateManager, IndentationLevelHandler, DynamicTypeCreationHandler) { constructor() { super(); } }
