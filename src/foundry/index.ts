@@ -10,6 +10,7 @@ import {
     InputMapping
 } from "../interfaces/sequence";
 import Base from "../base";
+import { GlobalStateVariableWithName } from "../interfaces/base";
 
 /**
  * @description
@@ -52,7 +53,7 @@ export default class Step2Code extends Base {
      * @description
      * Sets the contract mappings for the test contract. Uses the sequence and settings to extract the needed information.
      */
-    setContractMappings() {
+    setContractMappings(): void {
         // defining and not directly mutating to keep the code style uniform
         const _addressToContract: AddressToContractMapping = {}
         const _addressToAccount: AddressToAccountMapping = {}
@@ -73,6 +74,7 @@ export default class Step2Code extends Base {
                 _addressToContract[address].interface.push(functionString) :
                 _addressToContract[address] = { index: Object.keys(_addressToContract).length + 1, interface: [functionString] };
         }
+
         this.addressToContract = _addressToContract;
         this.addressToAccount = _addressToAccount;
     }
@@ -151,6 +153,7 @@ export default class Step2Code extends Base {
      */
     @Step2Code.indentation.Indent()
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
+
         const name: string = `Contract${index}`;
 
         this.contractInterfaces.push(name);
@@ -220,8 +223,11 @@ export default class Step2Code extends Base {
             })
         }
 
+        let fromValue: GlobalStateVariableWithName | null = this.getVariableNameByValue(from);
+        fromValue = fromValue ? fromValue : null;
+
         const prankFragment: string =
-            this.getIndentation() + `vm.prank(${from}); // Pranking the next call: \n`;
+            this.getIndentation() + `vm.prank(${fromValue?.name}); // Pranking the next call: \n`;
 
         return (
             // pranking: should end the prank and start a new one: | Using prank() instead of start/endPrank due to ease of use
@@ -261,7 +267,10 @@ export default class Step2Code extends Base {
      * @returns The vm deal definition
      */
     @Step2Code.indentation.Indent()
-    defineVmDeal(to: string): string { 
+    defineVmDeal(to: string): string {
+        const variableNameHoldingValue: GlobalStateVariableWithName | null = this.getVariableNameByValue(to);
+
+        to = variableNameHoldingValue ? variableNameHoldingValue.name : to;
         return `${this.getIndentation()}vm.deal(${to}, ${this.settings.fundsToCaller});`;
     }
 
