@@ -1,6 +1,6 @@
 import { Mixin } from 'ts-mixer';
 
-import { IGlobalStateManager, IIndentationLevelHandler, IIndentationLevelManager } from "../interfaces/base";
+import { GlobalStateVariableWithName, IGlobalStateManager, IIndentationLevelHandler, IIndentationLevelManager } from "../interfaces/base";
 import { GlobalState, GlobalStateVariable } from "../interfaces/base/index";
 import { GlobalStateVariableType } from "../utils/types";
 
@@ -65,6 +65,26 @@ export class GlobalStateManager implements IGlobalStateManager {
     getVariable(name: string): GlobalStateVariable { 
         if (!this.state[name].type) throw new Error(`Variable ${name} does not exist.`);
         return this.state[name];
+    }
+
+    getVariableNameByValue(value: string): GlobalStateVariableWithName | null { 
+        let lastValueOccurence: GlobalStateVariable | null = null
+        let variableName: string | null = null;
+        for (const _variableName in this.state) {
+            const variable = this.state[_variableName];
+            if (variable.value !== value) continue;
+            
+            if (variable.type === "address") return this.convertToGlobalStateVariableWithName(_variableName, value);
+            
+            variableName = _variableName;
+            lastValueOccurence = variable;    
+        }
+        
+        return lastValueOccurence ? this.convertToGlobalStateVariableWithName(variableName!, value) : null;
+    }
+
+    convertToGlobalStateVariableWithName(name: string, value: string): GlobalStateVariableWithName { 
+        return { name, value: this.state[name] };
     }
 }
 

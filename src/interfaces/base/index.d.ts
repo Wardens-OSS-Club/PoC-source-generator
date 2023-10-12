@@ -24,9 +24,15 @@ export interface IGlobalStateManager {
   private state: IGlobalState;
   setVariable(name: string, value: string, type: GlobalStateVariableType): void;
   getVariable(name: string): GlobalStateVariable;
+  getVariableNameByValue(value: string): GlobalStateVariableWithName | null;
 }
 
 export interface GlobalStateVariable {
   value: string;
   type: GlobalStateVariableType;
+}
+
+export type GlobalStateVariableWithName = {
+  name: string;
+  value: GlobalStateVariable;
 }
