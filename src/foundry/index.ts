@@ -174,9 +174,9 @@ export default class Step2Code extends Base {
     @Step2Code.indentation.Indent()
     defineVariable(name: string, value: string, type: string): string {
         if (!this.isValidStateVariableType(type)) throw new Error("Invalid type.");
-
+        const variable = this.getVariableNameByValue(value)
         this.setVariable(name, value, type);
-        return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${type}(${value})`) + ";";
+        return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${type}(${variable ? variable.name : value})`) + ";";
     }
 
     /**
