@@ -45,7 +45,7 @@ export default class Step2Code extends Base {
 
     // Contract-mappings functions:
 
-    isValidType(type: string): type is GlobalStateVariableType {
+    isValidStateVariableType(type: string): type is GlobalStateVariableType {
         return GlobalStateVariableTypeArray.includes(type) || this.contractInterfaces.includes(type);
     } 
 
@@ -151,6 +151,7 @@ export default class Step2Code extends Base {
      *  
      * @returns The contract interface
      */
+    // Using indent here is useless as the interface will always be on the top indentation level
     @Step2Code.indentation.Indent()
     defineContractInterface({ index, interface: _interface }: S2CContract): string {
 
@@ -172,7 +173,7 @@ export default class Step2Code extends Base {
      */
     @Step2Code.indentation.Indent()
     defineVariable(name: string, value: string, type: string): string {
-        if (!this.isValidType(type)) throw new Error("Invalid type.");
+        if (!this.isValidStateVariableType(type)) throw new Error("Invalid type.");
 
         this.setVariable(name, value, type);
         return `${this.getIndentation()}${type} ${name}` + (value === "" ? "" :` = ${type}(${value})`) + ";";

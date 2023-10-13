@@ -95,12 +95,12 @@ export class GlobalStateManager implements IGlobalStateManager {
 */ 
 export class IndentationLevelManager implements IIndentationLevelManager {
     // Using 4 spaces for indentation:
-    static readonly INDENTATION_LEVEL = " ".repeat(4);
+    static readonly INDENTATION_LAYER: string = " ".repeat(4);
 
     static current = 0;
 
     get(): string { 
-        return IndentationLevelManager.INDENTATION_LEVEL.repeat(IndentationLevelManager.current);
+        return IndentationLevelManager.INDENTATION_LAYER.repeat(IndentationLevelManager.current);
     }
 
     increase(): void {
@@ -146,7 +146,6 @@ export class IndentationLevelHandler implements IIndentationLevelHandler {
     static indentation: IndentationLevelManager = new IndentationLevelManager();
 
     getIndentation(): string { 
-
         return IndentationLevelHandler.indentation.get();
     }
 
